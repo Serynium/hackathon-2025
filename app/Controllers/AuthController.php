@@ -8,6 +8,7 @@ use App\Domain\Service\AuthService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Slim\Views\Twig;
 
 class AuthController extends BaseController
@@ -30,9 +31,36 @@ class AuthController extends BaseController
 
     public function register(Request $request, Response $response): Response
     {
-        // TODO: call corresponding service to perform user registration
+        $data = $request->getParsedBody();
+        $username = $data['username'] ?? '';
+        $password = $data['password'] ?? '';
 
-        return $response->withHeader('Location', '/login')->withStatus(302);
+        try {
+            $this->authService->register($username, $password);
+            $this->logger->info('User registered successfully', ['username' => $username]);
+            return $response->withHeader('Location', '/login')->withStatus(302);
+        } catch (RuntimeException $e) {
+            $this->logger->warning('Registration failed', [
+                'username' => $username,
+                'error' => $e->getMessage()
+            ]);
+
+            // Determine which field caused the error
+            $errors = [];
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Username')) {
+                $errors['username'] = $errorMessage;
+            } elseif (str_contains($errorMessage, 'Password')) {
+                $errors['password'] = $errorMessage;
+            } else {
+                $errors['username'] = $errorMessage;
+            }
+
+            return $this->render($response, 'auth/register.twig', [
+                'errors' => $errors,
+                'username' => $username
+            ]);
+        }
     }
 
     public function showLogin(Request $request, Response $response): Response
@@ -42,15 +70,38 @@ class AuthController extends BaseController
 
     public function login(Request $request, Response $response): Response
     {
-        // TODO: call corresponding service to perform user login, handle login failures
+        $data = $request->getParsedBody();
+        $username = $data['username'] ?? '';
+        $password = $data['password'] ?? '';
 
-        return $response->withHeader('Location', '/')->withStatus(302);
+        try {
+            $this->authService->attempt($username, $password);
+            $this->logger->info('User logged in successfully', ['username' => $username]);
+            return $response->withHeader('Location', '/')->withStatus(302);
+        } catch (RuntimeException $e) {
+            $this->logger->warning('Login failed', [
+                'username' => $username,
+                'error' => $e->getMessage()
+            ]);
+            
+            return $this->render($response, 'auth/login.twig', [
+                'errors' => ['login' => $e->getMessage()],
+                'username' => $username
+            ]);
+        }
     }
 
     public function logout(Request $request, Response $response): Response
     {
-        // TODO: handle logout by clearing session data and destroying session
-
+        // Clear all session data
+        $_SESSION = [];
+        
+        // Destroy the session
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        
+        $this->logger->info('User logged out');
         return $response->withHeader('Location', '/login')->withStatus(302);
     }
 }

@@ -3,6 +3,12 @@
 {% block content %}
     <h1 class="text-2xl font-bold mb-4">Login</h1>
     <form action="/login" method="POST" class="max-w-sm mx-auto">
+        {% if errors%}
+            {% for error in errors %}
+                 <span class="text-red-500">{{ error }}</span>
+            {% endfor %}
+        {% endif %}
+
         <div class="mb-4">
             <label for="username" class="block text-gray-400 text-sm font-bold mb-2">Username</label>
             <input type="text" id="username" name="username" required

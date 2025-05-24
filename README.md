@@ -104,10 +104,24 @@ A solution with passing analysis and unit tests will receive extra points.
 ## Delivery details
 
 Participant:
-- Full name: ...
-- Email address: ...
+- Full name: Vlad Bordianu
+- Email address: bordianu16@gmail.com
 
 Features fully implemented:
-- ...
+- Authentication System:
+  - Register (/register)
+    - GET: Displays registration form
+    - POST: Creates new user account
+    - Validates username (≥ 4 chars) and password (≥ 8 chars, 1 number)
+    - On success: Redirects to /login on success
+    - On failure: Renders /register and shows corresponding error messages.
+  - Login (/login)
+    - GET: Displays login form
+    - POST: Authenticates user and creates session
+    - On success: Redirects to Dashboard on success
+    - On failure: Renders /login and shows corresponding error messages.
+  - Logout (/logout)
+    - GET: Destroys user session
+    - Redirects to /login
 
 Other instructions about setting up the application (if any): ...
