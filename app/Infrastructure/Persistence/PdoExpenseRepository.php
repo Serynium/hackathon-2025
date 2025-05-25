@@ -41,7 +41,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
             $statement = $this->pdo->prepare($query);
             $statement->execute([
                 'user_id' => $expense->userId,
-                'date' => $expense->date->format('Y-m-d'),
+                'date' => $expense->date->format('Y-m-d H:i:s'),
                 'category' => $expense->category,
                 'amount_cents' => $expense->amountCents,
                 'description' => $expense->description,
@@ -55,7 +55,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
             $statement->execute([
                 'id' => $expense->id,
                 'user_id' => $expense->userId,
-                'date' => $expense->date->format('Y-m-d'),
+                'date' => $expense->date->format('Y-m-d H:i:s'),
                 'category' => $expense->category,
                 'amount_cents' => $expense->amountCents,
                 'description' => $expense->description,
@@ -165,7 +165,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function listExpenditureYears(UserDTO $user): array
     {
-        $query = 'SELECT DISTINCT strftime(\'%Y\', date) as year FROM expenses WHERE user_id = :user_id ORDER BY year DESC';
+        $query = 'SELECT DISTINCT strftime(\'%Y\', date) as year FROM expenses WHERE user_id = :user_id AND deleted_at IS NULL ORDER BY year DESC';
         $statement = $this->pdo->prepare($query);
         $statement->execute(['user_id' => $user->id]);
         
