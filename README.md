@@ -162,5 +162,10 @@ Extra Features  implemented:
   - Ensured data integrity during migration with no loss of precision
   - Updated CSV import/export to work with decimal amounts
   - Modified expense entity to use decimal amount as primary value
+- Soft Delete Implementation:
+  - Added deleted_at column to expenses table
+  - Modified delete operations to update deleted_at timestamp instead of removing records
+  - Updated repository queries to exclude soft-deleted records by default
+  - Ensured all expense-related queries respect soft-delete status
 
 Other instructions about setting up the application (if any): ...
