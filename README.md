@@ -123,5 +123,35 @@ Features fully implemented:
   - Logout (/logout)
     - GET: Destroys user session
     - Redirects to /login
+- Expenses Management:
+  - Expenses – List (/expenses)
+    - GET: Page with expenses table (20 rows/page by default)
+    - Lists monthly expenses for the logged-in user, sorted by date descending and paginated
+    - Year-month selector (current year always available, previous years shown if user had expenses)
+    - Columns: description, amount (formatted €), category, "Edit" link, "Delete" link
+    - Pagination controls: previous/next page, total items
+    - "Add" button navigates to Expenses – Add
+    - "Edit"/"Delete" links navigate to respective routes
+  - Expenses – Add (/expenses/create)
+    - GET: Renders form to add a new expense (date, category, amount, description)
+    - Backend validation: Date ≤ today, category selected, amount > 0, description not empty
+    - On success: Redirects to Expenses – List
+    - On failure: Redirects back to Add with prefilled values
+  - Expenses – Edit (/expenses/{id}/edit)
+    - GET: Renders pre-filled edit form for given expense
+    - POST: Updates expense with same validation as Add
+    - On success/failure: Redirects as above
+  - Expenses – Delete (/expenses/{id}/delete)
+    - POST: Hard-deletes expense by ID
+    - On success/failure: Redirects to Expenses – List
+  - Expenses – CSV Import (on Expenses – List page)
+    - Upload form for importing expenses from CSV (no header: date, description, amount, category)
+    - Skips duplicates and unknown categories, logs skipped rows and import summary
+    - On success/failure: Redirects to Expenses – List
+- Dashboard (/)
+  - GET: Overview page with monthly expenses summary and overspending alerts
+  - Year/month selectors for summary (defaults to current)
+  - Shows total expenditure, per-category totals and averages
+  - Overspending alerts for current month if category budget exceeded (categories configured in env, not DB)
 
 Other instructions about setting up the application (if any): ...
