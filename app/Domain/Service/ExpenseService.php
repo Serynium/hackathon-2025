@@ -62,9 +62,10 @@ class ExpenseService
         string $description,
         DateTimeImmutable $date,
         string $category,
-    ): void {
+    ): ?Expense {
         $expense = new Expense(null, $user->id, $date, $category, (int)($amount * 100), $description, $amount, null);
         $this->expenses->save($expense);
+        return $expense;
     }
 
     public function update(
