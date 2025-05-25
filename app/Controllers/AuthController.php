@@ -23,9 +23,6 @@ class AuthController extends BaseController
 
     public function showRegister(Request $request, Response $response): Response
     {
-        // TODO: you also have a logger service that you can inject and use anywhere; file is var/app.log
-        $this->logger->info('Register page requested');
-
         return $this->render($response, 'auth/register.twig');
     }
 
@@ -34,9 +31,10 @@ class AuthController extends BaseController
         $data = $request->getParsedBody();
         $username = $data['username'] ?? '';
         $password = $data['password'] ?? '';
+        $passwordConfirm = $data['password_confirm'] ?? '';
 
         try {
-            $this->authService->register($username, $password);
+            $this->authService->register($username, $password, $passwordConfirm);
             $this->logger->info('User registered successfully', ['username' => $username]);
             return $response->withHeader('Location', '/login')->withStatus(302);
         } catch (RuntimeException $e) {
@@ -45,13 +43,16 @@ class AuthController extends BaseController
                 'error' => $e->getMessage()
             ]);
 
-            // Determine which field caused the error
             $errors = [];
             $errorMessage = $e->getMessage();
             if (str_contains($errorMessage, 'Username')) {
                 $errors['username'] = $errorMessage;
             } elseif (str_contains($errorMessage, 'Password')) {
-                $errors['password'] = $errorMessage;
+                if (str_contains($errorMessage, 'match')) {
+                    $errors['password_confirm'] = $errorMessage;
+                } else {
+                    $errors['password'] = $errorMessage;
+                }
             } else {
                 $errors['username'] = $errorMessage;
             }
@@ -93,10 +94,8 @@ class AuthController extends BaseController
 
     public function logout(Request $request, Response $response): Response
     {
-        // Clear all session data
         $_SESSION = [];
         
-        // Destroy the session
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }

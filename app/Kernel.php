@@ -66,6 +66,7 @@ class Kernel
         AppFactory::setContainer($container);
         $app = AppFactory::create();
         $app->add(TwigMiddleware::createFromContainer($app, Twig::class));
+        $app->add(new \App\Middleware\CsrfMiddleware($container->get(Twig::class)));
         (require __DIR__.'/../config/settings.php')($app);
         (require __DIR__.'/../config/routes.php')($app);
 

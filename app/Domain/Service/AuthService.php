@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Service;
 
 use App\Domain\Entity\User;
+use App\Domain\DTOs\UserDTO;
 use App\Domain\Repository\UserRepositoryInterface;
 use DateTimeImmutable;
 use RuntimeException;
@@ -15,14 +16,12 @@ class AuthService
         private readonly UserRepositoryInterface $users,
     ) {}
 
-    public function register(string $username, string $password): User
+    public function register(string $username, string $password, string $passwordConfirm): User
     {
-        // Validate username length
         if (strlen($username) < 4) {
             throw new RuntimeException('Username must be at least 4 characters long');
         }
 
-        // Validate password requirements
         if (strlen($password) < 8) {
             throw new RuntimeException('Password must be at least 8 characters long');
         }
@@ -30,12 +29,14 @@ class AuthService
             throw new RuntimeException('Password must contain at least one number');
         }
 
-        // Check if username is already taken
+        if ($password !== $passwordConfirm) {
+            throw new RuntimeException('Passwords do not match');
+        }
+
         if ($this->users->findByUsername($username) !== null) {
             throw new RuntimeException('Username is already taken');
         }
 
-        // Create new user with hashed password
         $user = new User(
             null,
             $username,
@@ -68,10 +69,25 @@ class AuthService
             throw new RuntimeException('Incorrect password');
         }
 
-        // Store user data in session
+        session_regenerate_id(true);
+
         $_SESSION['user_id'] = $user->id;
         $_SESSION['username'] = $user->username;
 
         return true;
+    }
+
+    public function getUserSession(): ?UserDTO
+    {
+        if (!isset($_SESSION['user_id'])) {
+            return null;
+        }
+        
+        $user = $this->users->find($_SESSION['user_id']);
+        if (!$user) {
+            return null;
+        }
+
+        return new UserDTO($user->id, $user->username);
     }
 }

@@ -4,24 +4,60 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
-use App\Domain\Entity\User;
+use App\Domain\DTOs\UserDTO;
+use App\Domain\Repository\ExpenseRepositoryInterface;
 
 class AlertGenerator
 {
-    // TODO: refactor the array below and make categories and their budgets configurable in .env
-    // Hint: store them as JSON encoded in .env variable, inject them manually in a dedicated service,
-    // then inject and use use that service wherever you need category/budgets information.
-    private array $categoryBudgets = [
-        'Groceries' => 300.00,
-        'Utilities' => 200.00,
-        'Transport' => 500.00,
-        // ...
-    ];
+    private array $categoryBudgets;
 
-    public function generate(User $user, int $year, int $month): array
+    public function __construct(
+        private readonly ExpenseRepositoryInterface $expenses
+    ) {
+        $rawBudgets = json_decode($_ENV['CATEGORY_BUDGETS'] ?? '{}', true);
+        $this->categoryBudgets = array_combine(
+            array_map('strtolower', array_keys($rawBudgets)),
+            array_values($rawBudgets)
+        );
+    }
+
+    public function generate(UserDTO $user, int $year, int $month): array
     {
-        // TODO: implement this to generate alerts for overspending by category
-
-        return [];
+        $alerts = [];
+        
+        $criteria = [
+            'user_id' => $user->id,
+            'date_from' => sprintf('%d-%02d-01', $year, $month),
+            'date_to' => sprintf('%d-%02d-%d', $year, $month, date('t', strtotime("$year-$month-01")))
+        ];
+        
+        $categoryTotals = $this->expenses->sumAmountsByCategory($criteria);
+        
+        foreach ($this->categoryBudgets as $categoryLower => $budget) {
+            if (!isset($categoryTotals[$categoryLower])) {
+                continue;
+            }
+            
+            $total = $categoryTotals[$categoryLower];
+            if ($total > $budget) {
+                $alerts[] = [
+                    'type' => 'warning',
+                    'message' => sprintf(
+                        '%s budget exceeded by %.2f €',
+                        ucfirst($categoryLower),
+                        $total - $budget
+                    )
+                ];
+            }
+        }
+        
+        if (empty($alerts)) {
+            $alerts[] = [
+                'type' => 'success',
+                'message' => 'Looking good! You\'re within budget for this month.'
+            ];
+        }
+        
+        return $alerts;
     }
 }

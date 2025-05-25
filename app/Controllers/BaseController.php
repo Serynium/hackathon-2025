@@ -17,6 +17,4 @@ abstract class BaseController
     {
         return $this->view->render($response, $template, $data);
     }
-
-    // TODO: add here any common controller logic and use in concrete controllers
 }

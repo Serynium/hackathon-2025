@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Domain\Repository\UserRepositoryInterface;
+use App\Domain\Service\AlertGenerator;
+use App\Domain\Service\MonthlySummaryService;
+use App\Domain\Repository\ExpenseRepositoryInterface;
+use App\Domain\Service\AuthService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -12,28 +17,48 @@ class DashboardController extends BaseController
 {
     public function __construct(
         Twig $view,
-        // TODO: add necessary services here and have them injected by the DI container
-    )
-    {
+        private readonly UserRepositoryInterface $users,
+        private readonly AlertGenerator $alertGenerator,
+        private readonly MonthlySummaryService $monthlySummary,
+        private readonly ExpenseRepositoryInterface $expenses,
+        private readonly AuthService $authService,
+    ) {
         parent::__construct($view);
     }
 
     public function index(Request $request, Response $response): Response
     {
-        // TODO: parse the request parameters
-        // TODO: load the currently logged-in user
-        // TODO: get the list of available years for the year-month selector
-        // TODO: call service to generate the overspending alerts for current month
-        // TODO: call service to compute total expenditure per selected year/month
-        // TODO: call service to compute category totals per selected year/month
-        // TODO: call service to compute category averages per selected year/month
+        $user = $this->authService->getUserSession();
+        if (!$user) {
+            return $response->withHeader('Location', '/login')->withStatus(302);
+        }
+
+        $params = $request->getQueryParams();
+        $currentYear = (int)date('Y');
+        $currentMonth = (int)date('m');
+        
+        $year = isset($params['year']) ? (int)$params['year'] : $currentYear;
+        $month = isset($params['month']) ? (int)$params['month'] : $currentMonth;
+
+        $availableYears = $this->expenses->listExpenditureYears($user);
+        if (empty($availableYears)) {
+            $availableYears = [$currentYear];
+        }
+
+        $alerts = $this->alertGenerator->generate($user, $year, $month);
+
+        $totalForMonth = $this->monthlySummary->computeTotalExpenditure($user, $year, $month);
+        $totalsForCategories = $this->monthlySummary->computePerCategoryTotals($user, $year, $month);
+        $categoryAvgs = $this->monthlySummary->computePerCategoryAverages($user, $year, $month);
 
         return $this->render($response, 'dashboard.twig', [
-
-            'alerts'                => [],
-            'totalForMonth'         => [],
-            'totalsForCategories'   => [],
-            'averagesForCategories' => [],
+            'alerts' => $alerts,
+            'year' => $year,
+            'month' => $month,
+            'availableYears' => $availableYears,
+            'totalForMonth' => $totalForMonth,
+            'totalsForCategories' => $totalsForCategories,
+            'averagesForCategories' => $categoryAvgs
         ]);
     }
 }
