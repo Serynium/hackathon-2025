@@ -1,0 +1,1 @@
+ALTER TABLE expenses ADD COLUMN deleted_at TEXT;  -- ISO-8601 timestamp, nullable

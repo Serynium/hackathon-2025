@@ -22,7 +22,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
      */
     public function find(int $id): ?Expense
     {
-        $query = 'SELECT * FROM expenses WHERE id = :id';
+        $query = 'SELECT * FROM expenses WHERE id = :id AND deleted_at IS NULL';
         $statement = $this->pdo->prepare($query);
         $statement->execute(['id' => $id]);
         $data = $statement->fetch();
@@ -66,8 +66,12 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
 
     public function delete(int $id): void
     {
-        $statement = $this->pdo->prepare('DELETE FROM expenses WHERE id = :id');
-        $statement->execute(['id' => $id]);
+        // $statement = $this->pdo->prepare('DELETE FROM expenses WHERE id = :id');
+        $statement = $this->pdo->prepare('UPDATE expenses SET deleted_at = :deleted_at WHERE id = :id');
+        $statement->execute([
+            'id' => $id,
+            'deleted_at' => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
     }
 
     public function findBy(array $criteria, int $offset, int $limit): array
@@ -95,6 +99,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $query = 'SELECT * FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
+            $query .= ' AND deleted_at IS NULL';
         }
         
         // Add ordering and pagination
@@ -148,6 +153,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $query = 'SELECT COUNT(*) FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
+            $query .= ' AND deleted_at IS NULL';
         }
 
         // Execute query
@@ -192,6 +198,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $query = 'SELECT category, SUM(amount) as total FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
+            $query .= ' AND deleted_at IS NULL';
         }
         $query .= ' GROUP BY category';
 
@@ -233,6 +240,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $query = 'SELECT category, AVG(amount) as average FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
+            $query .= ' AND deleted_at IS NULL';
         }
         $query .= ' GROUP BY category';
 
@@ -274,6 +282,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         $query = 'SELECT SUM(amount) as total FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
+            $query .= ' AND deleted_at IS NULL';
         }
 
         // Execute query
@@ -296,6 +305,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
             $data['amount_cents'],
             $data['description'],
             $data['amount'],
+            $data['deleted_at'] ? new DateTimeImmutable($data['deleted_at']) : null,
         );
     }
 

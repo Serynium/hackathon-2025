@@ -16,5 +16,6 @@ final class Expense
         public int $amountCents,
         public string $description,
         public float $amount,
+        public ?DateTimeImmutable $deletedAt,
     ) {}
 }

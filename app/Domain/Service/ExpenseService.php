@@ -63,7 +63,7 @@ class ExpenseService
         DateTimeImmutable $date,
         string $category,
     ): void {
-        $expense = new Expense(null, $user->id, $date, $category, (int)($amount * 100), $description, $amount);
+        $expense = new Expense(null, $user->id, $date, $category, (int)($amount * 100), $description, $amount, null);
         $this->expenses->save($expense);
     }
 
@@ -82,6 +82,7 @@ class ExpenseService
             amountCents: (int)($amount * 100),
             description: $description,
             amount: $amount,
+            deletedAt: $expense->deletedAt,
         );
 
         $this->expenses->save($updatedExpense);
@@ -138,6 +139,7 @@ class ExpenseService
             amountCents: (int)($cleanAmount * 100),
             description: trim($description),
             amount: $cleanAmount,
+            deletedAt: null,
         );
     }
 
