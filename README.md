@@ -154,4 +154,13 @@ Features fully implemented:
   - Shows total expenditure, per-category totals and averages
   - Overspending alerts for current month if category budget exceeded (categories configured in env, not DB)
 
+Extra Features  implemented:
+- Database Migration:
+  - Migrated expense amounts from cents to decimal format
+  - Added new amount column while preserving amount_cents for backward compatibility
+  - Updated all expense-related code to use decimal amounts
+  - Ensured data integrity during migration with no loss of precision
+  - Updated CSV import/export to work with decimal amounts
+  - Modified expense entity to use decimal amount as primary value
+
 Other instructions about setting up the application (if any): ...

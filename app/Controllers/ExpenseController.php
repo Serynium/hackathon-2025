@@ -203,7 +203,8 @@ class ExpenseController extends BaseController
         $categoryBudgets = json_decode($_ENV['CATEGORY_BUDGETS'] ?? '{}', true);
         $categories = array_keys($categoryBudgets);
 
-        $amount = $expense->amountCents / 100;
+        // $amount = $expense->amountCents / 100;
+        $amount = $expense->amount;
 
         return $this->render($response, 'expenses/edit.twig', [
             'expense' => [

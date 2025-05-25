@@ -29,5 +29,6 @@ class ExpenseServiceTest extends TestCase
         $this->assertSame($date, $expense->date);
         $this->assertSame(1, $expense->userId);
         $this->assertSame(1230, $expense->amountCents);
+        $this->assertSame(12.3, $expense->amount);
     }
 }

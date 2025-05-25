@@ -37,7 +37,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
     {
         if ($expense->id === null) {
             // Insert new expense
-            $query = 'INSERT INTO expenses (user_id, date, category, amount_cents, description) VALUES (:user_id, :date, :category, :amount_cents, :description)';
+            $query = 'INSERT INTO expenses (user_id, date, category, amount_cents, description, amount) VALUES (:user_id, :date, :category, :amount_cents, :description, :amount)';
             $statement = $this->pdo->prepare($query);
             $statement->execute([
                 'user_id' => $expense->userId,
@@ -45,11 +45,12 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
                 'category' => $expense->category,
                 'amount_cents' => $expense->amountCents,
                 'description' => $expense->description,
+                'amount' => $expense->amount,
             ]);
             $expense->id = (int)$this->pdo->lastInsertId();
         } else {
             // Update existing expense
-            $query = 'UPDATE expenses SET date = :date, category = :category, amount_cents = :amount_cents, description = :description WHERE id = :id AND user_id = :user_id';
+            $query = 'UPDATE expenses SET date = :date, category = :category, amount_cents = :amount_cents, description = :description, amount = :amount WHERE id = :id AND user_id = :user_id';
             $statement = $this->pdo->prepare($query);
             $statement->execute([
                 'id' => $expense->id,
@@ -58,6 +59,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
                 'category' => $expense->category,
                 'amount_cents' => $expense->amountCents,
                 'description' => $expense->description,
+                'amount' => $expense->amount,
             ]);
         }
     }
@@ -186,7 +188,8 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         }
 
         // Construct the query
-        $query = 'SELECT category, SUM(amount_cents) / 100.0 as total FROM expenses';
+        // $query = 'SELECT category, SUM(amount_cents) / 100.0 as total FROM expenses';
+        $query = 'SELECT category, SUM(amount) as total FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
@@ -226,7 +229,8 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         }
 
         // Construct the query
-        $query = 'SELECT category, AVG(amount_cents) / 100.0 as average FROM expenses';
+        // $query = 'SELECT category, AVG(amount_cents) / 100.0 as average FROM expenses';
+        $query = 'SELECT category, AVG(amount) as average FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
@@ -266,7 +270,8 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
         }
 
         // Construct the query
-        $query = 'SELECT SUM(amount_cents) / 100.0 as total FROM expenses';
+        // $query = 'SELECT SUM(amount_cents) / 100.0 as total FROM expenses';
+        $query = 'SELECT SUM(amount) as total FROM expenses';
         if (!empty($conditions)) {
             $query .= ' WHERE ' . implode(' AND ', $conditions);
         }
@@ -290,6 +295,7 @@ class PdoExpenseRepository implements ExpenseRepositoryInterface
             $data['category'],
             $data['amount_cents'],
             $data['description'],
+            $data['amount'],
         );
     }
 

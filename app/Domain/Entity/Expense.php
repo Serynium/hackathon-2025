@@ -15,5 +15,6 @@ final class Expense
         public string $category,
         public int $amountCents,
         public string $description,
+        public float $amount,
     ) {}
 }

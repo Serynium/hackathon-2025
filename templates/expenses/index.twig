@@ -90,7 +90,8 @@
             {% for expense in expenses %}
                 <tr class="border-b border-gray-700">
                     <td class="py-2 px-4">{{ expense.description }}</td>
-                    <td class="py-2 px-4">{{ expense.amountCents / 100 | number_format(2) }} €</td>
+                    {# <td class="py-2 px-4">{{ expense.amountCents / 100 | number_format(2) }} €</td> #}
+                    <td class="py-2 px-4">{{ expense.amount| number_format(2) }} €</td>
                     <td class="py-2 px-4">{{ expense.date|date('m/d/Y') }}</td>
                     <td class="py-2 px-4">{{ expense.category }}</td>
                     <td class="py-2 px-4">
